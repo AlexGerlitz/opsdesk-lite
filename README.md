@@ -13,7 +13,7 @@ This is a public-safe backend portfolio project. It uses synthetic support ticke
 - **Review proof:** pytest coverage, ruff, CI, Docker Compose, PostgreSQL migration, Redis-backed worker path, smoke script, and public privacy audit.
 - **Profile / contact route:** [GitHub recruiter handoff](https://github.com/AlexGerlitz/AlexGerlitz/blob/main/GITHUB_RECRUITER_HANDOFF.md), [LinkedIn Recruiter Packet](https://alexgerlitz.github.io/AlexGerlitz/linkedin-recruiter-packet.html), and [PDF resume](https://alexgerlitz.github.io/AlexGerlitz/output/pdf/alex-gerlitz-python-backend-automation-resume.pdf).
 
-Shortest proof path: run `pytest -q`, inspect `src/opsdesk/service.py`, open `/docs`, then run `python scripts/smoke.py` against the API.
+Shortest proof path: run `pytest -q`, run `python scripts/reviewer_replay.py`, inspect `src/opsdesk/service.py`, open `/docs`, then run `python scripts/smoke.py` against the API.
 
 ## What This Proves
 
@@ -33,6 +33,7 @@ python3 -m venv .venv
 source .venv/bin/activate
 pip install ".[dev]"
 pytest -q
+python scripts/reviewer_replay.py
 ```
 
 Run the API with local Docker services:
@@ -79,6 +80,7 @@ curl http://localhost:8000/api/v1/operator/queue
 - `GET /api/v1/admin/metrics/summary` - SQL aggregation for reviewable support metrics.
 - `migrations/001_init.sql` - PostgreSQL schema.
 - `scripts/smoke.py` - live API smoke check.
+- `scripts/reviewer_replay.py` - no-Docker reviewer replay with synthetic intake, idempotency, queue, status handoff, outbox dispatch, metrics, and OpenAPI checks.
 - `scripts/privacy_audit.py` - public-safe repository audit.
 - `docs/ARCHITECTURE.md` - backend flow and boundaries.
 - `docs/RUNBOOK.md` - setup, smoke, and troubleshooting.

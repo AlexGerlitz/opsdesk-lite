@@ -7,8 +7,22 @@ python3 -m venv .venv
 source .venv/bin/activate
 pip install ".[dev]"
 pytest -q
+python3 scripts/reviewer_replay.py
 python3 scripts/privacy_audit.py
 ```
+
+## Reviewer Replay
+
+Run the no-Docker replay when a reviewer wants proof without starting services:
+
+```bash
+python3 scripts/reviewer_replay.py
+```
+
+It creates a temporary SQLite database, posts a synthetic webhook request, proves webhook
+idempotency, checks the operator queue, performs a status handoff, dispatches the outbox, reads
+metrics, and verifies the OpenAPI paths that define the backend slice. A non-zero exit means at
+least one proof check failed.
 
 ## Docker Run
 

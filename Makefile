@@ -1,4 +1,4 @@
-.PHONY: install test lint smoke run docker-up docker-down migrate worker privacy-audit
+.PHONY: install test lint smoke replay run docker-up docker-down migrate worker privacy-audit
 
 install:
 	python3 -m pip install ".[dev]"
@@ -11,6 +11,9 @@ lint:
 
 smoke:
 	python3 scripts/smoke.py
+
+replay:
+	python3 scripts/reviewer_replay.py
 
 run:
 	uvicorn opsdesk.main:app --reload
