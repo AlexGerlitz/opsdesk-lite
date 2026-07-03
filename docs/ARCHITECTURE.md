@@ -13,6 +13,7 @@ OpsDesk Lite is a small backend/API proof project for support and operator workf
 7. The SLA worker scans open tickets and marks breached tickets with a log event.
 8. Redis receives a lightweight SLA event when it is available.
 9. The outbox dispatch route marks due integration events as sent and supports retrying failed events.
+10. The metrics summary route groups ticket and outbox state for a support lead or reviewer.
 
 ## Data Boundary
 
@@ -25,9 +26,10 @@ This project is intentionally narrow: it demonstrates the backend slice recruite
 - REST API and OpenAPI.
 - SQL state and migrations.
 - Webhook idempotency and outbox/retry boundary.
+- SQL aggregation for queue, priority, source-channel, SLA, and outbox state.
 - Docker Compose handoff.
 - pytest coverage.
 - Small worker/background process.
 - Runbook and smoke check.
 
-It is not positioned as senior platform, SRE, Kubernetes, or Terraform ownership.
+It stays in the backend/API ownership lane; infrastructure tools are only handoff support.

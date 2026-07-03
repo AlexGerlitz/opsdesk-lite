@@ -129,3 +129,18 @@ class OutboxDispatchResult(BaseModel):
     scanned: int
     sent: int
     failed: int
+
+
+class CountBucket(BaseModel):
+    key: str
+    count: int
+
+
+class MetricsSummary(BaseModel):
+    total_tickets: int
+    open_tickets: int
+    sla_breached_tickets: int
+    by_status: list[CountBucket]
+    by_priority: list[CountBucket]
+    by_channel: list[CountBucket]
+    outbox_by_status: list[CountBucket]

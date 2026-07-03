@@ -35,7 +35,13 @@ Expected result:
   "ticket_id": 1,
   "queue_size": 1,
   "outbox_size": 1,
-  "outbox_dispatch": {"scanned": 1, "sent": 1, "failed": 0}
+  "outbox_dispatch": {"scanned": 1, "sent": 1, "failed": 0},
+  "metrics": {
+    "total_tickets": 1,
+    "open_tickets": 1,
+    "by_status": [{"key": "triaged", "count": 1}],
+    "outbox_by_status": [{"key": "sent", "count": 1}]
+  }
 }
 ```
 
@@ -61,6 +67,17 @@ curl -X POST http://localhost:8000/api/v1/admin/outbox/dispatch \
   -H "Content-Type: application/json" \
   -d '{"limit":10}'
 ```
+
+## Metrics Summary
+
+Check the reviewable support summary:
+
+```bash
+curl http://localhost:8000/api/v1/admin/metrics/summary
+```
+
+The response groups tickets by status, priority, source channel, SLA breach state, and outbox
+status. It is intentionally small so a reviewer can inspect the SQL/API boundary quickly.
 
 ## Troubleshooting
 

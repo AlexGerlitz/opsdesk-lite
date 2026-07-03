@@ -41,12 +41,19 @@ def main() -> int:
         f"/api/v1/tickets/{ticket['id']}/status",
         {"status": "triaged", "actor": "demo", "note": "validated from smoke script"},
     )
+    metrics = request("GET", "/api/v1/admin/metrics/summary")
     result = {
         "health": health,
         "ticket_id": ticket["id"],
         "queue_size": len(queue),
         "outbox_size": len(outbox_before),
         "outbox_dispatch": dispatch,
+        "metrics": {
+            "total_tickets": metrics["total_tickets"],
+            "open_tickets": metrics["open_tickets"],
+            "by_status": metrics["by_status"],
+            "outbox_by_status": metrics["outbox_by_status"],
+        },
     }
     print(json.dumps(result, indent=2))
     return 0

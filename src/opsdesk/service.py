@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
 from opsdesk.config import get_settings
@@ -16,7 +16,13 @@ from opsdesk.models import (
     TicketPriority,
     TicketStatus,
 )
-from opsdesk.schemas import ActivityCreate, TicketCreate, TicketStatusUpdate, WebhookTicket
+from opsdesk.schemas import (
+    ActivityCreate,
+    CountBucket,
+    TicketCreate,
+    TicketStatusUpdate,
+    WebhookTicket,
+)
 
 ALLOWED_TRANSITIONS = {
     TicketStatus.new: {
@@ -147,6 +153,49 @@ def list_outbox(
     if status is not None:
         query = query.where(OutboxEvent.status == status)
     return list(db.scalars(query))
+
+
+def _count_buckets(rows: list[tuple[object, int]]) -> list[CountBucket]:
+    buckets: list[CountBucket] = []
+    for key, count in rows:
+        value = key.value if hasattr(key, "value") else str(key)
+        buckets.append(CountBucket(key=value, count=count))
+    return buckets
+
+
+def metrics_summary(db: Session) -> dict[str, int | list[CountBucket]]:
+    total_tickets = db.scalar(select(func.count()).select_from(Ticket)) or 0
+    open_tickets = (
+        db.scalar(select(func.count()).select_from(Ticket).where(Ticket.status.in_(OPEN_STATUSES)))
+        or 0
+    )
+    sla_breached_tickets = (
+        db.scalar(select(func.count()).select_from(Ticket).where(Ticket.sla_breached.is_(True)))
+        or 0
+    )
+
+    by_status = _count_buckets(
+        list(db.execute(select(Ticket.status, func.count()).group_by(Ticket.status)))
+    )
+    by_priority = _count_buckets(
+        list(db.execute(select(Ticket.priority, func.count()).group_by(Ticket.priority)))
+    )
+    by_channel = _count_buckets(
+        list(db.execute(select(Ticket.channel, func.count()).group_by(Ticket.channel)))
+    )
+    outbox_by_status = _count_buckets(
+        list(db.execute(select(OutboxEvent.status, func.count()).group_by(OutboxEvent.status)))
+    )
+
+    return {
+        "total_tickets": total_tickets,
+        "open_tickets": open_tickets,
+        "sla_breached_tickets": sla_breached_tickets,
+        "by_status": by_status,
+        "by_priority": by_priority,
+        "by_channel": by_channel,
+        "outbox_by_status": outbox_by_status,
+    }
 
 
 def dispatch_pending_outbox(

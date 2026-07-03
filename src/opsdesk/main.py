@@ -11,6 +11,7 @@ from opsdesk.database import get_db
 from opsdesk.models import TicketStatus
 from opsdesk.schemas import (
     ActivityCreate,
+    MetricsSummary,
     OutboxDispatchRequest,
     OutboxDispatchResult,
     OutboxEventRead,
@@ -29,6 +30,7 @@ from opsdesk.service import (
     get_ticket,
     list_outbox,
     list_queue,
+    metrics_summary,
     update_ticket_status,
 )
 from opsdesk.worker import redis_client, scan_sla
@@ -113,3 +115,8 @@ def outbox_route(db: DbSession, limit: QueueLimit = 50) -> list[OutboxEventRead]
 @app.post("/api/v1/admin/outbox/dispatch", response_model=OutboxDispatchResult)
 def dispatch_outbox_route(payload: OutboxDispatchRequest, db: DbSession) -> dict[str, int]:
     return dispatch_pending_outbox(db, limit=payload.limit)
+
+
+@app.get("/api/v1/admin/metrics/summary", response_model=MetricsSummary)
+def metrics_summary_route(db: DbSession) -> dict:
+    return metrics_summary(db)
