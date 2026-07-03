@@ -1,8 +1,19 @@
 # OpsDesk Lite
 
+[![CI](https://github.com/AlexGerlitz/opsdesk-lite/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/AlexGerlitz/opsdesk-lite/actions/workflows/ci.yml)
+
 FastAPI/PostgreSQL support-desk backend: ticket intake -> validation -> database state -> operator queue -> SLA worker -> API tests -> Docker handoff.
 
 This is a public-safe backend portfolio project. It uses synthetic support tickets only and does not contain customer names, phone numbers, chat IDs, admin URLs, raw logs, tokens, database dumps, or private production code.
+
+## 60-Second Reviewer Snapshot
+
+- **Role signal:** Junior Python Backend / API Automation, Internal Tools, QA/API Python, and Support Engineer with Python when the work is API/backend-heavy.
+- **Backend slice:** support request intake -> Pydantic validation -> SQLAlchemy model -> operator queue -> explicit status transition -> SLA worker event.
+- **Review proof:** pytest coverage, ruff, CI, Docker Compose, PostgreSQL migration, Redis-backed worker path, smoke script, and public privacy audit.
+- **Profile / contact route:** [GitHub recruiter handoff](https://github.com/AlexGerlitz/AlexGerlitz/blob/main/GITHUB_RECRUITER_HANDOFF.md), [LinkedIn Recruiter Packet](https://alexgerlitz.github.io/AlexGerlitz/linkedin-recruiter-packet.html), and [PDF resume](https://alexgerlitz.github.io/AlexGerlitz/output/pdf/alex-gerlitz-python-backend-automation-resume.pdf).
+
+Shortest proof path: run `pytest -q`, inspect `src/opsdesk/service.py`, open `/docs`, then run `python scripts/smoke.py` against the API.
 
 ## What This Proves
 
