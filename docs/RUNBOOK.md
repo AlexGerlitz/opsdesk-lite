@@ -8,6 +8,7 @@ source .venv/bin/activate
 pip install ".[dev]"
 pytest -q
 python3 scripts/reviewer_replay.py
+python3 scripts/support_diagnostics.py
 python3 scripts/privacy_audit.py
 ```
 
@@ -23,6 +24,17 @@ It creates a temporary SQLite database, posts a synthetic webhook request, prove
 idempotency, checks the operator queue, performs a status handoff, dispatches the outbox, reads
 metrics, and verifies the OpenAPI paths that define the backend slice. A non-zero exit means at
 least one proof check failed.
+
+## Support Diagnostics Replay
+
+Run the no-Docker diagnostics proof when a reviewer wants to see application-support behavior:
+
+```bash
+python3 scripts/support_diagnostics.py
+```
+
+It posts a synthetic webhook request, confirms that diagnostics detect due integration work,
+dispatches the outbox, and confirms that the final reconciliation report is clean.
 
 ## Docker Run
 
@@ -45,11 +57,12 @@ Expected result:
 
 ```json
 {
-  "health": {"status": "ok", "app": "OpsDesk Lite"},
+  "health": {"status": "ok", "app": "OpsDesk Reviewer Replay"},
   "ticket_id": 1,
   "queue_size": 1,
   "outbox_size": 1,
   "outbox_dispatch": {"scanned": 1, "sent": 1, "failed": 0},
+  "diagnostics_ok": true,
   "metrics": {
     "total_tickets": 1,
     "open_tickets": 1,
@@ -92,6 +105,17 @@ curl http://localhost:8000/api/v1/admin/metrics/summary
 
 The response groups tickets by status, priority, source channel, SLA breach state, and outbox
 status. It is intentionally small so a reviewer can inspect the SQL/API boundary quickly.
+
+## Diagnostics
+
+Check the support reconciliation report:
+
+```bash
+curl http://localhost:8000/api/v1/admin/diagnostics/reconciliation
+```
+
+The response reports due integration work, failed outbox events, breached open tickets, and tickets
+missing a `ticket.created` event. Details use synthetic IDs only and avoid private customer data.
 
 ## Troubleshooting
 

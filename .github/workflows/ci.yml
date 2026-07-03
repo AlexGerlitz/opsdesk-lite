@@ -17,4 +17,5 @@ jobs:
       - run: ruff check .
       - run: pytest -q
       - run: python scripts/reviewer_replay.py
+      - run: python scripts/support_diagnostics.py
       - run: python scripts/privacy_audit.py

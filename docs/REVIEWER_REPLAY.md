@@ -1,12 +1,13 @@
 # Reviewer Replay
 
-This is the fastest technical proof path for OpsDesk Lite when Docker is not needed.
+This is the fastest technical proof path for OpsDesk Reviewer Replay when Docker is not needed.
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 pip install ".[dev]"
 python3 scripts/reviewer_replay.py
+python3 scripts/support_diagnostics.py
 ```
 
 The replay uses synthetic data only and runs against a temporary SQLite database. It proves:
@@ -17,6 +18,7 @@ The replay uses synthetic data only and runs against a temporary SQLite database
 - status handoff records assignee and activity history;
 - outbox dispatch reports sent/failed counts;
 - metrics aggregate queue, priority, source channel, and outbox state;
+- support diagnostics expose due integration work and reconciliation state;
 - OpenAPI exposes the review-relevant routes.
 
 Expected high-level checks:
@@ -32,6 +34,16 @@ Expected high-level checks:
   "outbox_dispatched": true,
   "metrics_total_tickets": true,
   "openapi_paths_present": true
+}
+```
+
+The diagnostics replay separately proves:
+
+```json
+{
+  "due_outbox_detected": true,
+  "dispatch_sent": true,
+  "final_reconciliation_ok": true
 }
 ```
 

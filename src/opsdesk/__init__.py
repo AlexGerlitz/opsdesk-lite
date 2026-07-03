@@ -1,1 +1,1 @@
-"""OpsDesk Lite backend package."""
+"""OpsDesk Reviewer Replay backend package."""

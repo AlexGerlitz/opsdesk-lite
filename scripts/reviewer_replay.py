@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import sys
 import warnings
 from collections.abc import Generator
 from contextlib import contextmanager
@@ -8,11 +9,14 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import TYPE_CHECKING, Any
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session, sessionmaker
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
 
-from opsdesk.database import Base, get_db
-from opsdesk.main import app
+from sqlalchemy import create_engine  # noqa: E402
+from sqlalchemy.orm import Session, sessionmaker  # noqa: E402
+
+from opsdesk.database import Base, get_db  # noqa: E402
+from opsdesk.main import app  # noqa: E402
 
 if TYPE_CHECKING:
     from fastapi.testclient import TestClient
@@ -92,6 +96,7 @@ def _run_replay_with_client(client: TestClient) -> dict[str, Any]:
             "/api/v1/operator/queue",
             "/api/v1/admin/outbox/dispatch",
             "/api/v1/admin/metrics/summary",
+            "/api/v1/admin/diagnostics/reconciliation",
         }
     ]
 
@@ -104,7 +109,7 @@ def _run_replay_with_client(client: TestClient) -> dict[str, Any]:
         "outbox_written_once": len(outbox_before) == 1,
         "outbox_dispatched": dispatch == {"scanned": 1, "sent": 1, "failed": 0},
         "metrics_total_tickets": metrics["total_tickets"] == 1,
-        "openapi_paths_present": len(selected_paths) == 5,
+        "openapi_paths_present": len(selected_paths) == 6,
     }
 
     return {

@@ -1,6 +1,6 @@
 # Architecture
 
-OpsDesk Lite is a small backend/API proof project for support and operator workflows.
+OpsDesk Reviewer Replay is a compact backend/API proof project for support and operator workflows.
 
 ## Flow
 
@@ -14,6 +14,7 @@ OpsDesk Lite is a small backend/API proof project for support and operator workf
 8. Redis receives a lightweight SLA event when it is available.
 9. The outbox dispatch route marks due integration events as sent and supports retrying failed events.
 10. The metrics summary route groups ticket and outbox state for a support lead or reviewer.
+11. The diagnostics route reports due integration work, failed outbox events, breached open tickets, and tickets missing a `ticket.created` event.
 
 ## Data Boundary
 
@@ -27,6 +28,7 @@ This project is intentionally narrow: it demonstrates the backend slice recruite
 - SQL state and migrations.
 - Webhook idempotency and outbox/retry boundary.
 - SQL aggregation for queue, priority, source-channel, SLA, and outbox state.
+- Support diagnostics/reconciliation for stuck integration work and state mismatches.
 - Docker Compose handoff.
 - pytest coverage.
 - Small worker/background process.

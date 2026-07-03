@@ -42,12 +42,14 @@ def main() -> int:
         {"status": "triaged", "actor": "demo", "note": "validated from smoke script"},
     )
     metrics = request("GET", "/api/v1/admin/metrics/summary")
+    diagnostics = request("GET", "/api/v1/admin/diagnostics/reconciliation")
     result = {
         "health": health,
         "ticket_id": ticket["id"],
         "queue_size": len(queue),
         "outbox_size": len(outbox_before),
         "outbox_dispatch": dispatch,
+        "diagnostics_ok": diagnostics["ok"],
         "metrics": {
             "total_tickets": metrics["total_tickets"],
             "open_tickets": metrics["open_tickets"],

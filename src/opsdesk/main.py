@@ -16,6 +16,7 @@ from opsdesk.schemas import (
     OutboxDispatchResult,
     OutboxEventRead,
     QueueItem,
+    ReconciliationReport,
     SlaScanResult,
     TicketCreate,
     TicketRead,
@@ -31,6 +32,7 @@ from opsdesk.service import (
     list_outbox,
     list_queue,
     metrics_summary,
+    reconciliation_report,
     update_ticket_status,
 )
 from opsdesk.worker import redis_client, scan_sla
@@ -39,9 +41,12 @@ DbSession = Annotated[Session, Depends(get_db)]
 QueueLimit = Annotated[int, Query(ge=1, le=200)]
 
 app = FastAPI(
-    title="OpsDesk Lite",
+    title="OpsDesk Reviewer Replay",
     version="0.1.0",
-    description="Support-desk backend proof: intake, operator queue, status handoff, SLA scan.",
+    description=(
+        "Support-desk backend proof: intake, operator queue, status handoff, "
+        "outbox, metrics, and diagnostics."
+    ),
 )
 
 
@@ -120,3 +125,8 @@ def dispatch_outbox_route(payload: OutboxDispatchRequest, db: DbSession) -> dict
 @app.get("/api/v1/admin/metrics/summary", response_model=MetricsSummary)
 def metrics_summary_route(db: DbSession) -> dict:
     return metrics_summary(db)
+
+
+@app.get("/api/v1/admin/diagnostics/reconciliation", response_model=ReconciliationReport)
+def reconciliation_route(db: DbSession) -> dict:
+    return reconciliation_report(db)

@@ -144,3 +144,16 @@ class MetricsSummary(BaseModel):
     by_priority: list[CountBucket]
     by_channel: list[CountBucket]
     outbox_by_status: list[CountBucket]
+
+
+class ReconciliationItem(BaseModel):
+    key: str
+    severity: str
+    count: int
+    details: list[str] = Field(default_factory=list)
+
+
+class ReconciliationReport(BaseModel):
+    checked_at: datetime
+    ok: bool
+    items: list[ReconciliationItem]

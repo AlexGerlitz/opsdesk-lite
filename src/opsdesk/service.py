@@ -198,6 +198,100 @@ def metrics_summary(db: Session) -> dict[str, int | list[CountBucket]]:
     }
 
 
+def _sample_details(values: list[str], *, limit: int = 5) -> list[str]:
+    return values[:limit]
+
+
+def reconciliation_report(db: Session, *, now: datetime | None = None) -> dict:
+    current_time = now or datetime.now(UTC)
+    due_outbox = list(
+        db.scalars(
+            select(OutboxEvent)
+            .where(OutboxEvent.status.in_([OutboxStatus.pending, OutboxStatus.failed]))
+            .where(OutboxEvent.next_attempt_at <= current_time)
+            .order_by(OutboxEvent.next_attempt_at.asc(), OutboxEvent.id.asc())
+        )
+    )
+    failed_outbox = [event for event in due_outbox if event.status == OutboxStatus.failed]
+    breached_open_tickets = list(
+        db.scalars(
+            select(Ticket)
+            .where(Ticket.status.in_(OPEN_STATUSES))
+            .where(Ticket.sla_breached.is_(True))
+            .order_by(Ticket.sla_due_at.asc(), Ticket.id.asc())
+        )
+    )
+
+    created_event_keys = set(
+        db.scalars(
+            select(OutboxEvent.idempotency_key).where(
+                OutboxEvent.event_type == "ticket.created"
+            )
+        )
+    )
+    tickets_missing_created_event: list[Ticket] = []
+    for ticket in db.scalars(select(Ticket).order_by(Ticket.id.asc())):
+        expected_key = f"ticket.created:{ticket.external_ref or ticket.id}"
+        if expected_key not in created_event_keys:
+            tickets_missing_created_event.append(ticket)
+
+    items = [
+        {
+            "key": "due_outbox_events",
+            "severity": "warning",
+            "count": len(due_outbox),
+            "details": _sample_details(
+                [
+                    f"event_id={event.id} status={event.status.value} attempts={event.attempts}"
+                    for event in due_outbox
+                ]
+            ),
+        },
+        {
+            "key": "failed_outbox_events",
+            "severity": "error",
+            "count": len(failed_outbox),
+            "details": _sample_details(
+                [
+                    (
+                        f"event_id={event.id} attempts={event.attempts} "
+                        f"last_error={event.last_error or ''}"
+                    )
+                    for event in failed_outbox
+                ]
+            ),
+        },
+        {
+            "key": "breached_open_tickets",
+            "severity": "warning",
+            "count": len(breached_open_tickets),
+            "details": _sample_details(
+                [
+                    (
+                        f"ticket_id={ticket.id} status={ticket.status.value} "
+                        f"priority={ticket.priority.value}"
+                    )
+                    for ticket in breached_open_tickets
+                ]
+            ),
+        },
+        {
+            "key": "tickets_missing_created_event",
+            "severity": "error",
+            "count": len(tickets_missing_created_event),
+            "details": _sample_details(
+                [f"ticket_id={ticket.id}" for ticket in tickets_missing_created_event]
+            ),
+        },
+    ]
+
+    return {
+        "checked_at": current_time,
+        "ok": not any(item["severity"] == "error" and item["count"] for item in items),
+        "items": items,
+    }
+
+
 def dispatch_pending_outbox(
     db: Session, *, limit: int = 50, now: datetime | None = None
 ) -> dict[str, int]:

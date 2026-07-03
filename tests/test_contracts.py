@@ -15,6 +15,7 @@ def test_openapi_exposes_recruiter_relevant_backend_surface(client):
     assert "/api/v1/admin/outbox" in paths
     assert "/api/v1/admin/outbox/dispatch" in paths
     assert "/api/v1/admin/metrics/summary" in paths
+    assert "/api/v1/admin/diagnostics/reconciliation" in paths
 
 
 def test_public_files_do_not_reference_private_customer_data():
