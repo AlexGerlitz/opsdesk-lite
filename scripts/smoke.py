@@ -34,17 +34,21 @@ def main() -> int:
         },
     )
     queue = request("GET", "/api/v1/operator/queue")
+    outbox_before = request("GET", "/api/v1/admin/outbox")
+    dispatch = request("POST", "/api/v1/admin/outbox/dispatch", {"limit": 10})
     request(
         "PATCH",
         f"/api/v1/tickets/{ticket['id']}/status",
         {"status": "triaged", "actor": "demo", "note": "validated from smoke script"},
     )
-    print(
-        json.dumps(
-            {"health": health, "ticket_id": ticket["id"], "queue_size": len(queue)},
-            indent=2,
-        )
-    )
+    result = {
+        "health": health,
+        "ticket_id": ticket["id"],
+        "queue_size": len(queue),
+        "outbox_size": len(outbox_before),
+        "outbox_dispatch": dispatch,
+    }
+    print(json.dumps(result, indent=2))
     return 0
 
 

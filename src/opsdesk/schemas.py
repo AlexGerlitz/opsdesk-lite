@@ -4,7 +4,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from opsdesk.models import TicketPriority, TicketStatus
+from opsdesk.models import OutboxStatus, TicketPriority, TicketStatus
 
 
 class TicketCreate(BaseModel):
@@ -102,3 +102,30 @@ class SlaScanResult(BaseModel):
     scanned: int
     breached: int
     redis_event_published: bool
+
+
+class OutboxEventRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    event_type: str
+    aggregate_type: str
+    aggregate_id: int
+    idempotency_key: str
+    payload_json: str
+    status: OutboxStatus
+    attempts: int
+    last_error: str | None
+    next_attempt_at: datetime
+    created_at: datetime
+    updated_at: datetime
+
+
+class OutboxDispatchRequest(BaseModel):
+    limit: int = Field(default=50, ge=1, le=200)
+
+
+class OutboxDispatchResult(BaseModel):
+    scanned: int
+    sent: int
+    failed: int

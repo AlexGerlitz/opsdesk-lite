@@ -7,10 +7,12 @@ OpsDesk Lite is a small backend/API proof project for support and operator workf
 1. A request arrives through `POST /api/v1/tickets` or `POST /api/v1/intake/webhook`.
 2. FastAPI validates the payload with Pydantic.
 3. SQLAlchemy stores the ticket and an immutable activity log entry.
-4. Operators read open work through `GET /api/v1/operator/queue`.
-5. Operators move work through explicit status transitions.
-6. The SLA worker scans open tickets and marks breached tickets with a log event.
-7. Redis receives a lightweight SLA event when it is available.
+4. The same transaction writes a `ticket.created` outbox event with an idempotency key.
+5. Operators read open work through `GET /api/v1/operator/queue`.
+6. Operators move work through explicit status transitions.
+7. The SLA worker scans open tickets and marks breached tickets with a log event.
+8. Redis receives a lightweight SLA event when it is available.
+9. The outbox dispatch route marks due integration events as sent and supports retrying failed events.
 
 ## Data Boundary
 
@@ -22,6 +24,7 @@ This project is intentionally narrow: it demonstrates the backend slice recruite
 
 - REST API and OpenAPI.
 - SQL state and migrations.
+- Webhook idempotency and outbox/retry boundary.
 - Docker Compose handoff.
 - pytest coverage.
 - Small worker/background process.

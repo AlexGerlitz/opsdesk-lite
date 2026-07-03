@@ -12,6 +12,8 @@ def test_openapi_exposes_recruiter_relevant_backend_surface(client):
     assert "/api/v1/intake/webhook" in paths
     assert "/api/v1/operator/queue" in paths
     assert "/api/v1/admin/sla/scan" in paths
+    assert "/api/v1/admin/outbox" in paths
+    assert "/api/v1/admin/outbox/dispatch" in paths
 
 
 def test_public_files_do_not_reference_private_customer_data():

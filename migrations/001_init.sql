@@ -31,3 +31,23 @@ CREATE TABLE IF NOT EXISTS activity_logs (
 
 CREATE INDEX IF NOT EXISTS ix_activity_logs_ticket_id ON activity_logs(ticket_id);
 CREATE INDEX IF NOT EXISTS ix_activity_logs_event_type ON activity_logs(event_type);
+
+CREATE TABLE IF NOT EXISTS outbox_events (
+  id SERIAL PRIMARY KEY,
+  event_type VARCHAR(80) NOT NULL,
+  aggregate_type VARCHAR(40) NOT NULL,
+  aggregate_id INTEGER NOT NULL,
+  idempotency_key VARCHAR(160) NOT NULL UNIQUE,
+  payload_json TEXT NOT NULL,
+  status VARCHAR(40) NOT NULL DEFAULT 'pending',
+  attempts INTEGER NOT NULL DEFAULT 0,
+  last_error TEXT,
+  next_attempt_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS ix_outbox_events_status ON outbox_events(status);
+CREATE INDEX IF NOT EXISTS ix_outbox_events_event_type ON outbox_events(event_type);
+CREATE INDEX IF NOT EXISTS ix_outbox_events_aggregate ON outbox_events(aggregate_type, aggregate_id);
+CREATE INDEX IF NOT EXISTS ix_outbox_events_next_attempt_at ON outbox_events(next_attempt_at);

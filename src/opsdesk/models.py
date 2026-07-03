@@ -27,6 +27,12 @@ class TicketStatus(StrEnum):
     resolved = "resolved"
 
 
+class OutboxStatus(StrEnum):
+    pending = "pending"
+    sent = "sent"
+    failed = "failed"
+
+
 OPEN_STATUSES = {
     TicketStatus.new,
     TicketStatus.triaged,
@@ -82,3 +88,24 @@ class ActivityLog(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
     ticket: Mapped[Ticket] = relationship(back_populates="activities")
+
+
+class OutboxEvent(Base):
+    __tablename__ = "outbox_events"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    event_type: Mapped[str] = mapped_column(String(80), index=True)
+    aggregate_type: Mapped[str] = mapped_column(String(40), index=True)
+    aggregate_id: Mapped[int] = mapped_column(Integer, index=True)
+    idempotency_key: Mapped[str] = mapped_column(String(160), unique=True, index=True)
+    payload_json: Mapped[str] = mapped_column(Text)
+    status: Mapped[OutboxStatus] = mapped_column(
+        Enum(OutboxStatus, native_enum=False), default=OutboxStatus.pending, index=True
+    )
+    attempts: Mapped[int] = mapped_column(Integer, default=0)
+    last_error: Mapped[str | None] = mapped_column(Text)
+    next_attempt_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, onupdate=utcnow
+    )

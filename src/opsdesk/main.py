@@ -11,6 +11,9 @@ from opsdesk.database import get_db
 from opsdesk.models import TicketStatus
 from opsdesk.schemas import (
     ActivityCreate,
+    OutboxDispatchRequest,
+    OutboxDispatchResult,
+    OutboxEventRead,
     QueueItem,
     SlaScanResult,
     TicketCreate,
@@ -22,7 +25,9 @@ from opsdesk.service import (
     append_activity,
     create_ticket,
     create_ticket_from_webhook,
+    dispatch_pending_outbox,
     get_ticket,
+    list_outbox,
     list_queue,
     update_ticket_status,
 )
@@ -98,3 +103,13 @@ def append_activity_route(ticket_id: int, payload: ActivityCreate, db: DbSession
 @app.post("/api/v1/admin/sla/scan", response_model=SlaScanResult)
 def sla_scan_route(db: DbSession) -> dict[str, int | bool]:
     return scan_sla(db, redis_conn=redis_client())
+
+
+@app.get("/api/v1/admin/outbox", response_model=list[OutboxEventRead])
+def outbox_route(db: DbSession, limit: QueueLimit = 50) -> list[OutboxEventRead]:
+    return list_outbox(db, limit=limit)
+
+
+@app.post("/api/v1/admin/outbox/dispatch", response_model=OutboxDispatchResult)
+def dispatch_outbox_route(payload: OutboxDispatchRequest, db: DbSession) -> dict[str, int]:
+    return dispatch_pending_outbox(db, limit=payload.limit)
