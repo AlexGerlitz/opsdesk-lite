@@ -1,0 +1,52 @@
+from __future__ import annotations
+
+import json
+import os
+from urllib.request import Request, urlopen
+
+BASE_URL = os.getenv("BASE_URL", "http://localhost:8000")
+
+
+def request(method: str, path: str, payload: dict | None = None) -> dict | list:
+    data = None if payload is None else json.dumps(payload).encode("utf-8")
+    req = Request(
+        f"{BASE_URL}{path}",
+        data=data,
+        method=method,
+        headers={"Content-Type": "application/json"},
+    )
+    with urlopen(req, timeout=10) as response:
+        return json.loads(response.read().decode("utf-8"))
+
+
+def main() -> int:
+    health = request("GET", "/health")
+    ticket = request(
+        "POST",
+        "/api/v1/tickets",
+        {
+            "requester_name": "Demo Operator",
+            "requester_email": "operator@example.test",
+            "channel": "web",
+            "subject": "Payment status mismatch",
+            "message": "Invoice is paid but the admin queue still shows pending.",
+            "priority": "high",
+        },
+    )
+    queue = request("GET", "/api/v1/operator/queue")
+    request(
+        "PATCH",
+        f"/api/v1/tickets/{ticket['id']}/status",
+        {"status": "triaged", "actor": "demo", "note": "validated from smoke script"},
+    )
+    print(
+        json.dumps(
+            {"health": health, "ticket_id": ticket["id"], "queue_size": len(queue)},
+            indent=2,
+        )
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
